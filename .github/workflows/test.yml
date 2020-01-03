@@ -141,6 +141,7 @@ jobs:
 
         file(DOWNLOAD "${LLVM_URL}" "${ROOT}/llvm-project.tar.xz")
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "${ROOT}/llvm-project.tar.xz")
+        execute_process(COMMAND ${CMAKE_COMMAND} -E remove -f "${ROOT}/llvm-project.tar.xz")
 
         string(REGEX REPLACE
           "http[s]*://releases.llvm.org/[0-9\\.]*/([^/]*)\\.tar\\.xz"
