@@ -124,6 +124,8 @@ jobs:
     - name: Download LLVM
       shell: cmake -P {0}
       run: |
+        execute_process(COMMAND ls -l $ENV{GITHUB_WORKSPACE})
+
         # Download LLVM Release.
         # Use CMake (rather than wget) because we know it's available and will get the job done.
         if("${{matrix.config.os}}" MATCHES "^ubuntu.*")
@@ -138,7 +140,10 @@ jobs:
         set(HALIDE_DIR "${ROOT}/halide")
 
         file(DOWNLOAD "${LLVM_URL}" "${HALIDE_DIR}/llvm-project.tar.xz")
+        execute_process(COMMAND ls -l $ENV{GITHUB_WORKSPACE})
+
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "${ROOT}/llvm-project.tar.xz")
+        execute_process(COMMAND ls -l $ENV{GITHUB_WORKSPACE})
 
         string(REGEX REPLACE
           "http[s]*://releases.llvm.org/[0-9\\.]*/([^/]*)\\.tar\\.xz"
