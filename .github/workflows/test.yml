@@ -244,10 +244,32 @@ jobs:
         endif()
 
     - name: Run Tests
+      shell: cmake -P {0}
       run: |
+        set(HALIDE_DIR "$ENV{GITHUB_WORKSPACE}")
+        set(LLVM_DIR "${HALIDE_DIR}/llvm")
+        set(HALIDE_BUILD_DIR "${HALIDE_DIR}/build")
+
         set(ENV{CC} "${{matrix.config.cc}}")
         set(ENV{CXX} "${{matrix.config.cxx}}")
         set(ENV{LLVM_CONFIG} "${LLVM_DIR}/bin/llvm-config")
 
-        # TODO: obviously not even close for windows
-        make -j4 run_tests
+        set(PARALLEL_JOBS 4)  # The VMs have 2 cores, so specify N+2
+        if (${{matrix.config.build_tool}} MATCHES "^cmake.*")
+          execute_process(
+            COMMAND make -j ${PARALLEL_JOBS} run_tests
+            WORKING_DIRECTORY ${HALIDE_DIR}
+            RESULT_VARIABLE result
+          )
+        elseif (${{matrix.config.build_tool}} STREQUAL "make")
+          execute_process(
+            COMMAND make -j ${PARALLEL_JOBS} run_tests
+            WORKING_DIRECTORY ${HALIDE_DIR}
+            RESULT_VARIABLE result
+          )
+        else()
+          message(FATAL_ERROR "Unknown build_tool: ${{matrix.config.build_tool}}")
+        endif()
+        if (NOT result EQUAL 0)
+          message(FATAL_ERROR "Bad exit status: ${result}")
+        endif()
