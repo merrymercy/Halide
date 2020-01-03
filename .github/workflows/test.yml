@@ -95,6 +95,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        path: 'halide'
 
     - name: Configure Ubuntu
       if: matrix.config.os == 'ubuntu-18.04'
@@ -124,8 +126,6 @@ jobs:
       run: |
         # Download LLVM Release.
         # Use CMake (rather than wget) because we know it's available and will get the job done.
-        message(STATUS "$ENV{GITHUB_WORKSPACE} $ENV{GITHUB_WORKSPACE}")
-
         if("${{matrix.config.os}}" MATCHES "^ubuntu.*")
           set(LLVM_URL "https://releases.llvm.org/${{matrix.config.llvm_version}}.0.0/clang+llvm-${{matrix.config.llvm_version}}.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz")
         elseif("${{matrix.config.os}}" MATCHES "^macos.*")
@@ -134,11 +134,11 @@ jobs:
           message(FATAL_ERROR "Unknown OS: ${{matrix.config.os}}")
         endif()
 
+        set(ROOT "$ENV{GITHUB_WORKSPACE}")
+        set(HALIDE_DIR "${ROOT}/halide")
 
-        # This should be our current dir, but I like absolute paths
-        set(HALIDE_DIR "$ENV{GITHUB_WORKSPACE}")
         file(DOWNLOAD "${LLVM_URL}" "${HALIDE_DIR}/llvm-project.tar.xz")
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "${HALIDE_DIR}/llvm-project.tar.xz")
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "${ROOT}/llvm-project.tar.xz")
 
         string(REGEX REPLACE
           "http[s]*://releases.llvm.org/[0-9\\.]*/([^/]*)\\.tar\\.xz"
@@ -146,10 +146,10 @@ jobs:
           LLVM_UNTAR_DIR
           "${LLVM_URL}"
         )
-        message(STATUS "LLVM_UNTAR_DIR ${HALIDE_DIR}/${LLVM_UNTAR_DIR}")
+        message(STATUS "LLVM_UNTAR_DIR ${ROOT}/${LLVM_UNTAR_DIR}")
         execute_process(
           COMMAND ${CMAKE_COMMAND}
-            -E rename "${HALIDE_DIR}/${LLVM_UNTAR_DIR}" "${HALIDE_DIR}/llvm"
+            -E rename "${ROOT}/${LLVM_UNTAR_DIR}" "${ROOT}/llvm"
           RESULT_VARIABLE result
         )
         if (NOT result EQUAL 0)
@@ -163,10 +163,10 @@ jobs:
         set(ENV{CC} "${{matrix.config.cc}}")
         set(ENV{CXX} "${{matrix.config.cxx}}")
 
-        # This should be our current dir, but I like absolute paths
-        set(HALIDE_DIR "$ENV{GITHUB_WORKSPACE}")
-        set(LLVM_DIR "${HALIDE_DIR}/llvm")
-        set(HALIDE_BUILD_DIR "${HALIDE_DIR}/build")
+        set(ROOT "$ENV{GITHUB_WORKSPACE}")
+        set(HALIDE_DIR "${ROOT}/halide")
+        set(LLVM_DIR "${ROOT}/llvm")
+        set(HALIDE_BUILD_DIR "${ROOT}/halide_build")
 
         execute_process(
           COMMAND ${CMAKE_COMMAND}
@@ -211,9 +211,10 @@ jobs:
       shell: cmake -P {0}
       run: |
         # Build Halide
-        set(HALIDE_DIR "$ENV{GITHUB_WORKSPACE}")
-        set(LLVM_DIR "${HALIDE_DIR}/llvm")
-        set(HALIDE_BUILD_DIR "${HALIDE_DIR}/build")
+        set(ROOT "$ENV{GITHUB_WORKSPACE}")
+        set(HALIDE_DIR "${ROOT}/halide")
+        set(LLVM_DIR "${ROOT}/llvm")
+        set(HALIDE_BUILD_DIR "${ROOT}/halide_build")
 
         set(ENV{CC} "${{matrix.config.cc}}")
         set(ENV{CXX} "${{matrix.config.cxx}}")
@@ -223,17 +224,13 @@ jobs:
         if (${{matrix.config.build_tool}} MATCHES "^cmake.*")
           execute_process(
             COMMAND ${CMAKE_COMMAND} --build ${HALIDE_BUILD_DIR} -j ${PARALLEL_JOBS} --target all
+            WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
             RESULT_VARIABLE result
           )
         elseif (${{matrix.config.build_tool}} STREQUAL "make")
           execute_process(
-            COMMAND make -j ${PARALLEL_JOBS} distrib
-            WORKING_DIRECTORY ${HALIDE_DIR}
-            RESULT_VARIABLE result
-          )
-          execute_process(
-            COMMAND make -j ${PARALLEL_JOBS} build_tests
-            WORKING_DIRECTORY ${HALIDE_DIR}
+            COMMAND make -f ${HALIDE_DIR}/Makefile -j ${PARALLEL_JOBS} distrib build_tests test_internal
+            WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
             RESULT_VARIABLE result
           )
         else()
@@ -246,9 +243,10 @@ jobs:
     - name: Run Tests
       shell: cmake -P {0}
       run: |
-        set(HALIDE_DIR "$ENV{GITHUB_WORKSPACE}")
-        set(LLVM_DIR "${HALIDE_DIR}/llvm")
-        set(HALIDE_BUILD_DIR "${HALIDE_DIR}/build")
+        set(ROOT "$ENV{GITHUB_WORKSPACE}")
+        set(HALIDE_DIR "${ROOT}/halide")
+        set(LLVM_DIR "${ROOT}/llvm")
+        set(HALIDE_BUILD_DIR "${ROOT}/halide_build")
 
         set(ENV{CC} "${{matrix.config.cc}}")
         set(ENV{CXX} "${{matrix.config.cxx}}")
@@ -258,13 +256,13 @@ jobs:
         if (${{matrix.config.build_tool}} MATCHES "^cmake.*")
           execute_process(
             COMMAND make -j ${PARALLEL_JOBS} run_tests
-            WORKING_DIRECTORY ${HALIDE_DIR}
+            WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
             RESULT_VARIABLE result
           )
         elseif (${{matrix.config.build_tool}} STREQUAL "make")
           execute_process(
-            COMMAND make -j ${PARALLEL_JOBS} run_tests
-            WORKING_DIRECTORY ${HALIDE_DIR}
+            COMMAND make -f ${HALIDE_DIR}/Makefile -j ${PARALLEL_JOBS} run_tests
+            WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
             RESULT_VARIABLE result
           )
         else()
