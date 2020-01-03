@@ -139,7 +139,7 @@ jobs:
         set(ROOT "$ENV{GITHUB_WORKSPACE}")
         set(HALIDE_DIR "${ROOT}/halide")
 
-        file(DOWNLOAD "${LLVM_URL}" "${ROOT}/llvm-project.tar.xz" SHOW_PROGRESS)
+        file(DOWNLOAD "${LLVM_URL}" "${ROOT}/llvm-project.tar.xz")
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf "${ROOT}/llvm-project.tar.xz")
 
         string(REGEX REPLACE
