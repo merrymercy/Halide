@@ -254,7 +254,8 @@ jobs:
         set(ENV{CXX} "${{matrix.config.cxx}}")
         set(ENV{LLVM_CONFIG} "${LLVM_DIR}/bin/llvm-config")
 
-        set(PARALLEL_JOBS 4)  # The VMs have 2 cores, so specify N+2
+        # TODO
+        set(PARALLEL_JOBS 1)  # The VMs have 2 cores, so specify N+2
         if (${{matrix.config.build_tool}} MATCHES "^cmake.*")
           execute_process(
             COMMAND make -j ${PARALLEL_JOBS} run_tests
