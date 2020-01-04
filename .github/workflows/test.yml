@@ -262,6 +262,8 @@ jobs:
     - name: Run Tests
       shell: cmake -P {0}
       run: |
+        execute_process(COMMAND du -d 1 $ENV{GITHUB_WORKSPACE})
+
         set(ROOT "$ENV{GITHUB_WORKSPACE}")
         set(HALIDE_DIR "${ROOT}/halide")
         set(LLVM_DIR "${ROOT}/llvm")
