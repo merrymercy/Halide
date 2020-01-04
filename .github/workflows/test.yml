@@ -9,8 +9,7 @@ jobs:
     runs-on: ${{matrix.config.os}}
 
     strategy:
-      # TODO: true? false?
-      fail-fast: true
+      fail-fast: false  # Keep running other jobs even if one fails
       matrix:
         config:
         # Ubuntu (x86-64) builds
