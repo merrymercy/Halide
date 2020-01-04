@@ -112,6 +112,9 @@ jobs:
         # Install doxygen
         sudo apt-get -y --force-yes --no-install-recommends install doxygen
 
+        execute_process(COMMAND du -d 1 $ENV{GITHUB_WORKSPACE})
+
+
     - name: Configure OSX
       if: matrix.config.os == 'macos-latest'
       run: |
@@ -121,11 +124,11 @@ jobs:
         # Don't install LLVM via brew: it can conflict with the existing LLVM
         # installation in OSX and cause unhappiness. We'll handle it specially below.
 
+        execute_process(COMMAND du -d 1 $ENV{GITHUB_WORKSPACE})
+
     - name: Download LLVM
       shell: cmake -P {0}
       run: |
-        execute_process(COMMAND ls -l $ENV{GITHUB_WORKSPACE})
-
         # Download LLVM Release.
         # Use CMake (rather than wget) because we know it's available and will get the job done.
         if("${{matrix.config.os}}" MATCHES "^ubuntu.*")
@@ -158,6 +161,8 @@ jobs:
         if (NOT result EQUAL 0)
           message(FATAL_ERROR "Bad exit status: ${result}")
         endif()
+
+        execute_process(COMMAND du -d 1 $ENV{GITHUB_WORKSPACE})
 
     - name: Configure Make/CMake
       shell: cmake -P {0}
@@ -210,6 +215,9 @@ jobs:
           message(FATAL_ERROR "Bad exit status: ${result}")
         endif()
 
+        execute_process(COMMAND du -d 1 $ENV{GITHUB_WORKSPACE})
+
+
     - name: Build Halide
       shell: cmake -P {0}
       run: |
@@ -225,23 +233,31 @@ jobs:
 
         set(PARALLEL_JOBS 4)  # The VMs have 2 cores, so specify N+2
         if (${{matrix.config.build_tool}} MATCHES "^cmake.*")
-          execute_process(
-            COMMAND ${CMAKE_COMMAND} --build ${HALIDE_BUILD_DIR} -j ${PARALLEL_JOBS} --target all
-            WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
-            RESULT_VARIABLE result
-          )
+          foreach(TARGET distrib build_tests test_internal)
+            # CMake only allows one --target flag per invocation
+            execute_process(
+              COMMAND ${CMAKE_COMMAND} --build ${HALIDE_BUILD_DIR} -j ${PARALLEL_JOBS} --target ${TARGET}
+              WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
+              RESULT_VARIABLE result
+            )
+            if (NOT result EQUAL 0)
+              message(FATAL_ERROR "Bad exit status: ${result}")
+            endif()
+          endforeach()
         elseif (${{matrix.config.build_tool}} STREQUAL "make")
           execute_process(
             COMMAND make -f ${HALIDE_DIR}/Makefile -j ${PARALLEL_JOBS} distrib build_tests test_internal
             WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
             RESULT_VARIABLE result
           )
+          if (NOT result EQUAL 0)
+            message(FATAL_ERROR "Bad exit status: ${result}")
+          endif()
         else()
           message(FATAL_ERROR "Unknown build_tool: ${{matrix.config.build_tool}}")
         endif()
-        if (NOT result EQUAL 0)
-          message(FATAL_ERROR "Bad exit status: ${result}")
-        endif()
+
+        execute_process(COMMAND du -d 1 $ENV{GITHUB_WORKSPACE})
 
     - name: Run Tests
       shell: cmake -P {0}
@@ -255,17 +271,16 @@ jobs:
         set(ENV{CXX} "${{matrix.config.cxx}}")
         set(ENV{LLVM_CONFIG} "${LLVM_DIR}/bin/llvm-config")
 
-        # TODO
-        set(PARALLEL_JOBS 1)  # The VMs have 2 cores, so specify N+2
+        set(PARALLEL_JOBS 4)  # The VMs have 2 cores, so specify N+2
         if (${{matrix.config.build_tool}} MATCHES "^cmake.*")
           execute_process(
-            COMMAND make -j ${PARALLEL_JOBS} correctness_extern_sort
+            COMMAND make -j ${PARALLEL_JOBS} run_tests
             WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
             RESULT_VARIABLE result
           )
         elseif (${{matrix.config.build_tool}} STREQUAL "make")
           execute_process(
-            COMMAND make -f ${HALIDE_DIR}/Makefile -j ${PARALLEL_JOBS} correctness_extern_sort
+            COMMAND make -f ${HALIDE_DIR}/Makefile -j ${PARALLEL_JOBS} run_tests
             WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
             RESULT_VARIABLE result
           )
