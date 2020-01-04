@@ -112,7 +112,7 @@ jobs:
         # Install doxygen
         sudo apt-get -y --force-yes --no-install-recommends install doxygen
 
-        du -d 1 $ENV{GITHUB_WORKSPACE}
+        du -d 1 ${GITHUB_WORKSPACE}
 
 
     - name: Configure OSX
@@ -124,7 +124,7 @@ jobs:
         # Don't install LLVM via brew: it can conflict with the existing LLVM
         # installation in OSX and cause unhappiness. We'll handle it specially below.
 
-        du -d 1 $ENV{GITHUB_WORKSPACE}
+        du -d 1 ${GITHUB_WORKSPACE}
 
     - name: Download LLVM
       shell: cmake -P {0}
