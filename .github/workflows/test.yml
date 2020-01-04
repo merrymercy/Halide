@@ -259,13 +259,13 @@ jobs:
         set(PARALLEL_JOBS 1)  # The VMs have 2 cores, so specify N+2
         if (${{matrix.config.build_tool}} MATCHES "^cmake.*")
           execute_process(
-            COMMAND make -j ${PARALLEL_JOBS} run_tests
+            COMMAND make -j ${PARALLEL_JOBS} correctness_extern_sort
             WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
             RESULT_VARIABLE result
           )
         elseif (${{matrix.config.build_tool}} STREQUAL "make")
           execute_process(
-            COMMAND make -f ${HALIDE_DIR}/Makefile -j ${PARALLEL_JOBS} run_tests
+            COMMAND make -f ${HALIDE_DIR}/Makefile -j ${PARALLEL_JOBS} correctness_extern_sort
             WORKING_DIRECTORY ${HALIDE_BUILD_DIR}
             RESULT_VARIABLE result
           )
