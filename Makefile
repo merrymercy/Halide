@@ -1872,7 +1872,7 @@ correctness_%: $(BIN_DIR)/correctness_%
 	@-mkdir -p $(TMP_DIR)
 	cd $(TMP_DIR) ; $(CURDIR)/$<
 	@-echo
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 correctness_opencl_runtime: $(BIN_DIR)/$(TARGET)/correctness_opencl_runtime
 	@-mkdir -p $(TMP_DIR)
@@ -1882,7 +1882,7 @@ correctness_opencl_runtime: $(BIN_DIR)/$(TARGET)/correctness_opencl_runtime
 quiet_correctness_%: $(BIN_DIR)/correctness_%
 	@-mkdir -p $(TMP_DIR)
 	@cd $(TMP_DIR) ; ( $(CURDIR)/$< 2>stderr_$*.txt > stdout_$*.txt && echo -n . ) || ( echo ; echo FAILED TEST: $* ; cat stdout_$*.txt stderr_$*.txt ; false )
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 valgrind_%: $(BIN_DIR)/correctness_%
 	@-mkdir -p $(TMP_DIR)
@@ -1906,19 +1906,19 @@ performance_%: $(BIN_DIR)/performance_%
 	@-mkdir -p $(TMP_DIR)
 	cd $(TMP_DIR) ; $(CURDIR)/$<
 	@-echo
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 error_%: $(BIN_DIR)/error_%
 	@-mkdir -p $(TMP_DIR)
 	cd $(TMP_DIR) ; $(CURDIR)/$< 2>&1 | egrep --q "terminating with uncaught exception|^terminate called|^Error|Assertion.*failed"
 	@-echo
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 warning_%: $(BIN_DIR)/warning_%
 	@-mkdir -p $(TMP_DIR)
 	cd $(TMP_DIR) ; $(CURDIR)/$< 2>&1 | egrep --q "^Warning"
 	@-echo
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 opengl_%: $(BIN_DIR)/opengl_%
 	@-mkdir -p $(TMP_DIR)
@@ -1929,19 +1929,19 @@ generator_jit_%: $(BIN_DIR)/generator_jit_%
 	@-mkdir -p $(TMP_DIR)
 	cd $(TMP_DIR) ; $(CURDIR)/$<
 	@-echo
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 generator_aot_%: $(BIN_DIR)/$(TARGET)/generator_aot_%
 	@-mkdir -p $(TMP_DIR)
 	cd $(TMP_DIR) ; $(CURDIR)/$<
 	@-echo
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 generator_aotcpp_%: $(BIN_DIR)/$(TARGET)/generator_aotcpp_%
 	@-mkdir -p $(TMP_DIR)
 	cd $(TMP_DIR) ; $(CURDIR)/$<
 	@-echo
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 ifneq ($(WITH_WEBASSEMBLY), )
 generator_aotwasm_%: $(BIN_DIR)/$(TARGET)/generator_aotwasm_%.js $(BIN_DIR)/$(TARGET)/generator_aotwasm_%.wasm
@@ -1958,13 +1958,13 @@ tutorial_%: $(BIN_DIR)/tutorial_% $(TMP_DIR)/images/rgb.png $(TMP_DIR)/images/gr
 	@-mkdir -p $(TMP_DIR)
 	cd $(TMP_DIR) ; $(CURDIR)/$<
 	@-echo
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 auto_schedule_%: $(BIN_DIR)/auto_schedule_%
 	@-mkdir -p $(TMP_DIR)
 	cd $(TMP_DIR) ; $(CURDIR)/$<
 	@-echo
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 time_compilation_test_%: $(BIN_DIR)/test_%
 	$(TIME_COMPILATION) compile_times_correctness.csv make -f $(THIS_MAKEFILE) $(@:time_compilation_test_%=test_%)
@@ -2017,7 +2017,7 @@ $(TEST_APPS_DEPS): distrib build_python_bindings
 		BIN_DIR=$(CURDIR)/$(BIN_DIR)/apps/$(@:%_test_app=%)/bin \
 		HL_TARGET=$(HL_TARGET) \
 		|| exit 1 ;
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 .PHONY: test_apps $(TEST_APPS_DEPS)
 test_apps: $(TEST_APPS_DEPS)
@@ -2084,7 +2084,7 @@ test_python: distrib $(BIN_DIR)/host/runtime.a build_python_bindings
 		BIN=$(CURDIR)/$(BIN_DIR)/python3_bindings \
 		PYTHON=python3 \
 		PYBIND11_PATH=$(REAL_PYBIND11_PATH)
-	echo "DU $(shell du -d 0 ${ROOT_DIR})"
+	echo "DU $(shell du -d 0 ${ROOT_DIR}/..)"
 
 # It's just for compiling the runtime, so earlier clangs *might* work,
 # but best to peg it to the minimum llvm version.
