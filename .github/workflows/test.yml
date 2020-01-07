@@ -13,14 +13,14 @@ jobs:
       matrix:
         config:
         # Ubuntu (x86-64) builds
-        # - {
-        #     name: "Ubuntu g++ llvm8 cmake_shared",
-        #     build_tool: "cmake_shared",
-        #     cc: "gcc",
-        #     cxx: "g++",
-        #     llvm_version: 8,
-        #     os: ubuntu-18.04,
-        #   }
+        - {
+            name: "Ubuntu g++ llvm8 cmake_shared",
+            build_tool: "cmake_shared",
+            cc: "gcc",
+            cxx: "g++",
+            llvm_version: 8,
+            os: ubuntu-18.04,
+          }
         # - {
         #     name: "Ubuntu g++ llvm8 cmake_static",
         #     build_tool: "cmake_static",
@@ -45,41 +45,41 @@ jobs:
             llvm_version: 9,
             os: ubuntu-18.04,
           }
-        - {
-            name: "Ubuntu g++ llvm9 cmake_static",
-            build_tool: "cmake_static",
-            cc: "gcc",
-            cxx: "g++",
-            llvm_version: 9,
-            os: ubuntu-18.04,
-          }
-        - {
-            name: "Ubuntu g++ llvm9 make",
-            build_tool: "make",
-            cc: "gcc",
-            cxx: "g++",
-            llvm_version: 9,
-            os: ubuntu-18.04,
-          }
+        # - {
+        #     name: "Ubuntu g++ llvm9 cmake_static",
+        #     build_tool: "cmake_static",
+        #     cc: "gcc",
+        #     cxx: "g++",
+        #     llvm_version: 9,
+        #     os: ubuntu-18.04,
+        #   }
+        # - {
+        #     name: "Ubuntu g++ llvm9 make",
+        #     build_tool: "make",
+        #     cc: "gcc",
+        #     cxx: "g++",
+        #     llvm_version: 9,
+        #     os: ubuntu-18.04,
+        #   }
 
         # OSX builds
-        - {
-            name: "OSX llvm9 cmake_shared",
-            build_tool: "cmake_shared",
-            cc: "clang",
-            cxx: "clang++",
-            llvm_version: 9,
-            os: macos-latest,
-          }
+        # - {
+        #     name: "OSX llvm9 cmake_shared",
+        #     build_tool: "cmake_shared",
+        #     cc: "clang",
+        #     cxx: "clang++",
+        #     llvm_version: 9,
+        #     os: macos-latest,
+        #   }
 
-        - {
-            name: "OSX llvm9 make",
-            build_tool: "make",
-            cc: "clang",
-            cxx: "clang++",
-            llvm_version: 9,
-            os: macos-latest,
-          }
+        # - {
+        #     name: "OSX llvm9 make",
+        #     build_tool: "make",
+        #     cc: "clang",
+        #     cxx: "clang++",
+        #     llvm_version: 9,
+        #     os: macos-latest,
+        #   }
 
         # - {
         #     name: "Windows Latest MSVC", artifact: "Windows-MSVC.tar.xz",
