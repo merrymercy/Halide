@@ -1,7 +1,34 @@
 #include <iostream>
 #include <functional>
+#include <string>
+#include <vector>
+#include <stdlib.h>
 
 #include "halide_benchmark.h"
+
+
+inline std::vector<int> GetArgsFromEnv() {
+    std::vector<int> ret;
+
+    if (const char* env_p = std::getenv("HL_APP_ARGS")) {
+        std::string val(env_p);
+
+        size_t offset = 0;
+        auto pos = val.find(',', offset);
+        while (pos != std::string::npos) {
+            ret.push_back(std::stoi(val.substr(offset, pos - offset)));
+            offset = pos + 1;
+            pos = val.find(',', offset);
+        }
+        ret.push_back(std::stoi(val.substr(offset, val.size() - offset)));
+    } else {
+        std::cerr << "Cannot load arguments from environment variable HL_APP_ARGS" << std::endl;
+        exit(-1);
+    }
+
+    return ret;
+}
+
 
 inline void three_way_bench(std::function<void()> manual,
                             std::function<void()> auto_classic,
@@ -14,6 +41,8 @@ inline void three_way_bench(std::function<void()> manual,
     };
 
     Halide::Tools::BenchmarkConfig config;
+    config.min_time = 1.0;
+    config.max_time = 10.0;
     config.accuracy = 0.005;
 
     double t;
