@@ -74,6 +74,7 @@ apps/*/*.ll
 apps/*/*.sass
 apps/*/filter
 apps/HelloAndroidGL/jni/halide_gl_filter.h
+apps/autoscheduler/samples
 
 # tutorial intermediates
 tutorial/lesson_10_halide.h
@@ -89,3 +90,4 @@ src/.tags_sorted_by_file
 
 /.vs
 /CMakeSettings.json
+
