@@ -6,6 +6,9 @@
 
 #include "halide_benchmark.h"
 
+inline int GetArg(const std::vector<int> &args, size_t index, int default_value = 0) {
+    return index < args.size() ? args[index] : default_value;
+}
 
 inline std::vector<int> GetArgsFromEnv() {
     std::vector<int> ret;
