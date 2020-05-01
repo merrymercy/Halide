@@ -18,6 +18,7 @@ class Conv2d : public Halide::Generator<Conv2d> {
 public:
     Input<Buffer<float>>  input{"input", 4};
     Input<Buffer<float>>  filter{"filter", 4};
+
     Output<Buffer<float>> output{"output", 4};
 
     void generate() {
@@ -31,36 +32,34 @@ public:
         const int kernel_size = args[i++];
         const int strides     = GetArg(args, i++, 1);
         const int padding     = GetArg(args, i++, 0);
-        const int dilation    = GetArg(args, i++, 1);
-        const int groups      = GetArg(args, i++, 1);
 
         const int KH = kernel_size;
         const int KW = kernel_size;
         const int SH = strides;
         const int SW = strides;
-        const int PH = padding;
-        const int PW = padding;
-        const int DH = dilation;
-        const int DW = dilation;
 
-        const int OH = (H + 2 * PH - (KH - 1) * DH - 1) / SH + 1;
-        const int OW = (W + 2 * PW - (KW - 1) * DW - 1) / SW + 1;
+        const int OH = (H - 1) * SH - 2 * padding + KH;
+        const int OW = (W - 1) * SW - 2 * padding + KW;
 
         Var c("c"), w("w"), h("h"), n("n");
 
-        Func padded("pad");
+        Func f_conv_trans("conv_trans"), padded("pad");
 
-        if (PH || PW) {
-            padded = pad(input, W, H);
-        } else {
-            padded = input;
-        }
+        const int bpad_top  = KH - 1 - padding;
+        const int bpad_left = KW - 1 - padding;
+        const int PH = (bpad_top + SH - 1) / SH;
+        const int PW = (bpad_left + SW - 1) / SW;
 
-        RDom r(0, CI / groups, 0, KW, 0, KH);
+        padded = pad(input, W, H);
+
+        const int BH = (SH - bpad_top % SH) % SH;
+        const int BW = (SW - bpad_left % SW) % SW;
+
+        RDom r(0, CI, 0, KW, 0, KH);
 
         output(c, w, h, n) = 0.0f;
-        output(c, w, h, n) += filter(c, r.y, r.z, r.x)
-            * padded(c / (CO / groups) * (CI / groups) + r.x, w * SW + r.y * DW - PW, h * SH + r.z * DH - PH, n);
+        output(c, w, h, n) += filter(c, r.x, KW - 1 - r.y, KH - 1 - r.z)
+            * padded(r.x, (w + r.y + BW) / SW - PW, (h + r.z + BH) / SH - PH, n);
 
         output.bound(c, 0, CO)
               .bound(w, 0, OW)
@@ -73,9 +72,9 @@ public:
              .dim(3).set_bounds(0,  N).set_stride(CI * W * H);
 
         filter.dim(0).set_bounds(0, CO).set_stride(1)
-              .dim(1).set_bounds(0, KW).set_stride(CO)
-              .dim(2).set_bounds(0, KH).set_stride(CO * KW)
-              .dim(3).set_bounds(0, CI / groups).set_stride(CO * KH * KW);
+              .dim(1).set_bounds(0, CI).set_stride(CO)
+              .dim(2).set_bounds(0, KW).set_stride(CO * CI)
+              .dim(3).set_bounds(0, KH).set_stride(CO * CI * KW);
 
         output.dim(0).set_bounds(0, CO).set_stride(1)
               .dim(1).set_bounds(0, OW).set_stride(CO)

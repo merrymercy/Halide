@@ -14,11 +14,15 @@ Func pad(Func f, Expr width, Expr height) {
     return Halide::BoundaryConditions::constant_exterior(f, 0.0f, bounds);
 }
 
-class Conv2d : public Halide::Generator<Conv2d> {
+class Conv2dBnRelu : public Halide::Generator<Conv2dBnRelu> {
 public:
     Input<Buffer<float>>  input{"input", 4};
     Input<Buffer<float>>  filter{"filter", 4};
-    Output<Buffer<float>> output{"output", 4};
+    Input<Buffer<float>>  bias{"bias", 1};
+    Input<Buffer<float>> bn_scale{"bn_scale", 1};
+    Input<Buffer<float>> bn_offset{"bn_offset", 1};
+
+    Output<Buffer<float>> f_ReLU{"ReLU", 4};
 
     void generate() {
         std::vector<int> args = GetArgsFromEnv();
@@ -29,10 +33,10 @@ public:
         const int CI = args[i++];
         const int CO = args[i++];
         const int kernel_size = args[i++];
-        const int strides     = GetArg(args, i++, 1);
-        const int padding     = GetArg(args, i++, 0);
-        const int dilation    = GetArg(args, i++, 1);
-        const int groups      = GetArg(args, i++, 1);
+        const int strides = args[i++];
+        const int padding = args[i++];
+        const int dilation = GetArg(args, i++, 1);
+        const int groups = 1;
 
         const int KH = kernel_size;
         const int KW = kernel_size;
@@ -48,7 +52,7 @@ public:
 
         Var c("c"), w("w"), h("h"), n("n");
 
-        Func padded("pad");
+        Func f_bn("bn"), f_conv("conv"), padded("pad");
 
         if (PH || PW) {
             padded = pad(input, W, H);
@@ -56,13 +60,19 @@ public:
             padded = input;
         }
 
+        
         RDom r(0, CI / groups, 0, KW, 0, KH);
 
-        output(c, w, h, n) = 0.0f;
-        output(c, w, h, n) += filter(c, r.y, r.z, r.x)
+        f_conv(c, w, h, n) = bias(c);
+        f_conv(c, w, h, n) += filter(c, r.y, r.z, r.x)
             * padded(c / (CO / groups) * (CI / groups) + r.x, w * SW + r.y * DW - PW, h * SH + r.z * DH - PH, n);
 
-        output.bound(c, 0, CO)
+        f_bn(c, w, h, n) = f_conv(c, w, h, n) * bn_scale(c);
+        f_bn(c, w, h, n) += bn_offset(c);
+
+        f_ReLU(c, w, h, n) = max(0, f_bn(c, w, h, n));
+
+        f_ReLU.bound(c, 0, CO)
               .bound(w, 0, OW)
               .bound(h, 0, OH)
               .bound(n, 0, N);
@@ -77,7 +87,13 @@ public:
               .dim(2).set_bounds(0, KH).set_stride(CO * KW)
               .dim(3).set_bounds(0, CI / groups).set_stride(CO * KH * KW);
 
-        output.dim(0).set_bounds(0, CO).set_stride(1)
+        bias.dim(0).set_bounds(0, CO).set_stride(1);
+
+        bn_scale.dim(0).set_bounds(0, CO).set_stride(1);
+
+        bn_offset.dim(0).set_bounds(0, CO).set_stride(1);
+
+        f_ReLU.dim(0).set_bounds(0, CO).set_stride(1)
               .dim(1).set_bounds(0, OW).set_stride(CO)
               .dim(2).set_bounds(0, OH).set_stride(CO * OW)
               .dim(3).set_bounds(0,  N).set_stride(CO * OW * OH);
@@ -86,4 +102,4 @@ public:
 
 }  // namespace
 
-HALIDE_REGISTER_GENERATOR(Conv2d, demo)
+HALIDE_REGISTER_GENERATOR(Conv2dBnRelu, demo)
