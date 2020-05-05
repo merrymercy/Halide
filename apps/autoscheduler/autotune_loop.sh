@@ -164,7 +164,7 @@ else
 fi
 echo Local number of cores detected as ${LOCAL_CORES}
 
-NUM_BATCHES=${HL_TUNE_NUM_BATCHES:-default}
+NUM_BATCHES=${HL_TUNE_NUM_BATCHES:-10}
 
 for ((BATCH_ID=$((FIRST+1));BATCH_ID<$((FIRST+1+NUM_BATCHES));BATCH_ID++)); do
 
