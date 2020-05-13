@@ -56,9 +56,11 @@ public:
 
         RDom r(0, KW, 0, KH, 0, capsule_size, 0, CI);
 
-        output(c, cap_j, cap_i, w, h, n) = 0.0f;
-        output(c, cap_j, cap_i, w, h, n) += filter(c, r.w, cap_j, r.z, r.x, r.y)
+        Func func("func");
+        func(c, cap_j, cap_i, w, h, n) = 0.0f;
+        func(c, cap_j, cap_i, w, h, n) += filter(c, r.w, cap_j, r.z, r.x, r.y)
             * padded(r.w, r.z, cap_i, w * SW + r.x - PW, h * SH + r.y - PH, n);
+        output(c, cap_j, cap_i, w, h, n) = func(c, cap_j, cap_i, w, h, n);
 
         output.bound(c, 0, CO)
               .bound(cap_j, 0, capsule_size)

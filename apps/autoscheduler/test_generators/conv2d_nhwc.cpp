@@ -58,9 +58,11 @@ public:
 
         RDom r(0, CI / groups, 0, KW, 0, KH);
 
-        output(c, w, h, n) = 0.0f;
-        output(c, w, h, n) += filter(c, r.y, r.z, r.x)
+        Func func("func");
+        func(c, w, h, n) = 0.0f;
+        func(c, w, h, n) += filter(c, r.y, r.z, r.x)
             * padded(c / (CO / groups) * (CI / groups) + r.x, w * SW + r.y * DW - PW, h * SH + r.z * DH - PH, n);
+        output(c, w, h, n) = func(c, w, h, n);
 
         output.bound(c, 0, CO)
               .bound(w, 0, OW)

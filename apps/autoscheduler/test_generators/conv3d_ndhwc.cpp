@@ -69,13 +69,15 @@ public:
 
         RDom r(0, in_channel_per_group, 0, KW, 0, KH, 0, KD);
 
-        output(c, w, h, d, n) = 0.0f;
-        output(c, w, h, d, n) += filter(c, r.y, r.z, r.w, r.x)
+        Func func("func");
+        func(c, w, h, d, n) = 0.0f;
+        func(c, w, h, d, n) += filter(c, r.y, r.z, r.w, r.x)
             * padded(c / out_channel_per_group * in_channel_per_group + r.x,
                      w * SW + r.y * DW - PW,
                      h * SH + r.z * DH - PH,
                      d * SD + r.w * DD - PD,
                      n);
+        output(c, w, h, d, n) = func(c, w, h, d, n);
 
         output.bound(c, 0, CO)
               .bound(w, 0, OW)

@@ -60,9 +60,11 @@ public:
 
         RDom r(0, KW, 0, KH);
 
-        output(c, w, h, n) = 0.0f;
-        output(c, w, h, n) += filter(c / factor, r.x, r.y, c % factor)
+        Func func("func");
+        func(c, w, h, n) = 0.0f;
+        func(c, w, h, n) += filter(c / factor, r.x, r.y, c % factor)
             * padded(c / factor, w * SW + r.x * DW - PW, h * SH + r.y * DH - PH, n);
+        output(c, w, h, n) = func(c, w, h, n);
 
         output.bound(c, 0, CO)
               .bound(w, 0, OW)

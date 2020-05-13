@@ -23,8 +23,11 @@ public:
         // Algorithm
         RDom k(0, K);
 
-        output(x, y, b) = 0.0f;
-        output(x, y, b) += input_a(k, y, b) * input_b(x, k, b);
+
+        Func func("func");
+        func(x, y, b) = 0.0f;
+        func(x, y, b) += input_a(k, y, b) * input_b(x, k, b);
+        output(x, y, b) = func(x, y, b);
 
         output.bound(x, 0, M)
               .bound(y, 0, N)

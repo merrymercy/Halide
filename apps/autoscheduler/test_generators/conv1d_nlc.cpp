@@ -46,9 +46,11 @@ public:
 
         RDom r(0, CI / groups, 0, kernel_size);
 
-        output(c, l, n) = 0.0f;
-        output(c, l, n) += filter(c, r.y, r.x)
+        Func func("func");
+        func(c, l, n) = 0.0f;
+        func(c, l, n) += filter(c, r.y, r.x)
             * padded(c / (CO / groups) * (CI / groups) + r.x, l * strides + r.y * dilation - padding, n);
+        output(c, l, n) = func(c, l, n);
 
         output.bound(c, 0, CO)
               .bound(l, 0, OL)
