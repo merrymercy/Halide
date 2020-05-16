@@ -22,14 +22,15 @@ public:
 
         Func query_T("query_T");
         Func value_T("value_T");
+        Func matmul("matmul");
         RDom k(0, n_dim);
         Var b("b"), h("h"), l("l"), d("d"), i("i"), j("j");
 
         query_T(d, l, h, b) = query(d, h, l, b);
         value_T(l, d, h, b) = value(d, h, l, b);
 
-        output(j, i, h, b) = 0.0f;
-        output(j, i, h, b) += query_T(k, i, h, b) * value_T(j, k, h, b);
+        matmul(j, i, h, b) += query_T(k, i, h, b) * value_T(j, k, h, b);
+        output(j, i, h, b) = matmul(j, i, h, b);
 
         output.bound(j, 0, seq_len)
               .bound(i, 0, seq_len)
