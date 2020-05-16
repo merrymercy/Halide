@@ -7,44 +7,49 @@ class TransposeBatchMatMul : public Halide::Generator<TransposeBatchMatMul> {
 public:
     std::vector<int> args = GetArgsFromEnv();
     int i = 0;
-    const int B = args[i++];
-    const int N = args[i++];
-    const int M = args[i++];
-    const int K = args[i++];
+    const int batch = args[i++];
+    const int seq_len = args[i++];
+    const int n_head = args[i++];
+    const int n_dim = args[i++];
 
-    Input<Buffer<float>>    input_a{"input_a", 3};
-    Input<Buffer<float>>    input_b{"input_b", 3};
-
-    Output<Buffer<float>>   output{"output", 3};
+    Input<Buffer<float>>    query{"query", 4};
+    Input<Buffer<float>>    value{"value", 4};
+    Output<Buffer<float>>   output{"output", 4};
 
     void generate() {
-        Var x("x"), y("y"), b("b");
 
         // Algorithm
-        RDom k(0, K);
 
-        Func matrix_trans("matrix_trans");
-        Func matrix_mul("matrix_mul");
+        Func query_T("query_T");
+        Func value_T("value_T");
+        RDom k(0, n_dim);
+        Var b("b"), h("h"), l("l"), d("d"), i("i"), j("j");
 
-        matrix_trans(x, y, b) = input_b(y, x, b);
-        output(x, y, b) = 0.0f;
-        output(x, y, b) += input_a(k, y, b) * matrix_trans(x, k, b);
+        query_T(d, l, h, b) = query(d, h, l, b);
+        value_T(l, d, h, b) = value(d, h, l, b);
 
-        output.bound(x, 0, M)
-              .bound(y, 0, N)
-              .bound(b, 0, B);
+        output(j, i, h, b) = 0.0f;
+        output(j, i, h, b) += query_T(k, i, h, b) * value_T(j, k, h, b);
 
-        input_a.dim(0).set_bounds(0, K).set_stride(1)
-               .dim(1).set_bounds(0, N).set_stride(K)
-               .dim(2).set_bounds(0, B).set_stride(K * N);
+        output.bound(j, 0, seq_len)
+              .bound(i, 0, seq_len)
+              .bound(h, 0, n_head)
+              .bound(b, 0, batch);
 
-        input_b.dim(0).set_bounds(0, K).set_stride(1)
-               .dim(1).set_bounds(0, M).set_stride(K)
-               .dim(2).set_bounds(0, B).set_stride(K * M);
+        query.dim(0).set_bounds(0, n_dim).set_stride(1)
+             .dim(1).set_bounds(0, n_head).set_stride(n_dim)
+             .dim(2).set_bounds(0, seq_len).set_stride(n_dim * n_head)
+             .dim(3).set_bounds(0, batch).set_stride(n_dim * n_head * seq_len);
 
-        output.dim(0).set_bounds(0, M).set_stride(1)
-              .dim(1).set_bounds(0, N).set_stride(M)
-              .dim(2).set_bounds(0, B).set_stride(M * N);
+        value.dim(0).set_bounds(0, n_dim).set_stride(1)
+             .dim(1).set_bounds(0, n_head).set_stride(n_dim)
+             .dim(2).set_bounds(0, seq_len).set_stride(n_dim * n_head)
+             .dim(3).set_bounds(0, batch).set_stride(n_dim * n_head * seq_len);
+
+        output.dim(0).set_bounds(0, seq_len).set_stride(1)
+              .dim(1).set_bounds(0, seq_len).set_stride(seq_len)
+              .dim(2).set_bounds(0, n_head).set_stride(seq_len * seq_len)
+              .dim(3).set_bounds(0, batch).set_stride(seq_len * seq_len * n_head);
     }
 };
 
