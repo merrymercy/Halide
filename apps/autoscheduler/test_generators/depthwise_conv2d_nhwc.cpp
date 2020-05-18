@@ -28,7 +28,6 @@ public:
         const int H  = args[i++];
         const int W  = args[i++];
         const int CI = args[i++];
-        const int CO = args[i++];
         const int kernel_size = args[i++];
         const int strides     = GetArg(args, i++, 1);
         const int padding     = GetArg(args, i++, 0);
@@ -36,6 +35,7 @@ public:
         const int factor      = GetArg(args, i++, 1);
         assert(factor == 1);
 
+        const int CO = CI;
         const int KH = kernel_size;
         const int KW = kernel_size;
         const int SH = strides;
