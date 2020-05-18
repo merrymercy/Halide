@@ -31,5 +31,6 @@ func(a_tvm, b_tvm, c_tvm)
 c_np = c_tvm.asnumpy()
 
 print(c_np.sum())
-print(c_np[0,1,1,1])
+print("Output(0, 0, 0, 0):", c_np[0, 0, 0, 0])
+print("Output(0, 1, 1, 1):", c_np[0, 1, 1, 1])
 

@@ -112,6 +112,7 @@ int main(int argc, char **argv) {
     }
     std::cerr << "sum: " << sum << std::endl;
     std::cerr << "output(1, 1, 1, 0): " << output(1, 1, 1, 0) << std::endl;
+    std::cerr << "output(0, 0, 0, 0): " << output(0, 0, 0, 0) << std::endl;
 
     // Timing code
 
